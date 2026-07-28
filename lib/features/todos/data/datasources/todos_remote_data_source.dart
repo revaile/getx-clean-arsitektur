@@ -1,6 +1,6 @@
-import 'package:getx_clean_arsitektur/core/constants/api_constants.dart';
-import 'package:getx_clean_arsitektur/core/network/api_client.dart';
-import 'package:getx_clean_arsitektur/features/todos/data/models/todo_model.dart';
+import '../../../../core/constants/api_constants.dart';
+import '../../../../core/network/api_client.dart';
+import '../models/todo_model.dart';
 
 abstract class TodosRemoteDataSource {
   Future<List<TodoModel>> getTodos();

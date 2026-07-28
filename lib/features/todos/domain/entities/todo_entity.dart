@@ -10,6 +10,6 @@ class TodoEntity {
   final int id;
   final int userId;
   final String title;
-  final DateTime dueOn;
-  final bool status;
+  final String dueOn;
+  final String status;
 }

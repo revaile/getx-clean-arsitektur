@@ -1,7 +1,7 @@
 import 'package:get/get.dart';
-import 'package:getx_clean_arsitektur/features/todos/domain/entities/todo_entity.dart';
-import 'package:getx_clean_arsitektur/features/todos/domain/usecases/get_todos_usecase.dart';
 
+import '../../domain/entities/todo_entity.dart';
+import '../../domain/usecases/get_todos_usecase.dart';
 
 class TodosController extends GetxController {
   TodosController(
