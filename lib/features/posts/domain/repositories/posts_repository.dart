@@ -2,7 +2,7 @@ import 'package:getx_clean_arsitektur/features/posts/domain/entities/post_entity
 
 import '../../../../core/utils/app_result.dart';
 
-abstract class PostRepository {
+abstract class PostsRepository {
   //ambil buat list post
   Future<AppResult<List<PostEntity>>> getPosts();
 

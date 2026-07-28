@@ -1,15 +1,15 @@
 import 'package:get/get_rx/src/rx_types/rx_types.dart';
 import 'package:get/get_state_manager/src/simple/get_controllers.dart';
 import 'package:getx_clean_arsitektur/features/posts/domain/entities/post_entity.dart';
-import 'package:getx_clean_arsitektur/features/posts/domain/usecase/get_post_usecase.dart';
+import 'package:getx_clean_arsitektur/features/posts/domain/usecase/get_posts_usecase.dart';
 
-class PostsControllers extends GetxController {
-  PostsControllers(
+class PostsController extends GetxController {
+  PostsController(
     //untuk list post
     this._getPostsUseCase,
 
   );
-  final GetPostUsecase _getPostsUseCase;
+  final GetPostsUseCase _getPostsUseCase;
 
   final posts = <PostEntity>[].obs;
   final errorMessage = ''.obs;

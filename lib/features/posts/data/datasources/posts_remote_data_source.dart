@@ -2,14 +2,14 @@ import 'package:getx_clean_arsitektur/core/constants/api_constants.dart';
 import 'package:getx_clean_arsitektur/core/network/api_client.dart';
 import 'package:getx_clean_arsitektur/features/posts/data/models/post_model.dart';
 
-abstract class PostRemoteDataSource {
+abstract class PostsRemoteDataSource {
   //ambil buat list post
   Future<List<PostModel>> getPosts();
 
 }
 
-class PostRemoteDataSourceImpl implements PostRemoteDataSource {
-  const PostRemoteDataSourceImpl(this._apiClient);
+class PostsRemoteDataSourceImpl implements PostsRemoteDataSource {
+  const PostsRemoteDataSourceImpl(this._apiClient);
 
   final ApiClient _apiClient;
 
