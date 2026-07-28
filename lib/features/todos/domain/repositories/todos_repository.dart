@@ -5,6 +5,6 @@ import '../entities/todo_request.dart';
 abstract class TodosRepository {
   Future<AppResult<List<TodoEntity>>> getTodos();
   Future<AppResult<TodoEntity>> getTodo(int id);
-  Future<AppResult<TodoEntity>> createUser(int userId, TodoRequest request);
+  Future<AppResult<TodoEntity>> createTodo(int userId, TodoRequest request);
 
 }
