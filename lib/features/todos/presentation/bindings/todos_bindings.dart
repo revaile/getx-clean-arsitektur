@@ -1,4 +1,5 @@
 import 'package:get/get.dart';
+import 'package:getx_clean_arsitektur/features/todos/domain/usecases/get_todo_usecase.dart';
 
 import '../../../../core/network/api_client.dart';
 import '../../data/datasources/todos_remote_data_source.dart';
@@ -18,7 +19,11 @@ class TodosBinding extends Bindings {
     );
     Get.lazyPut(() => GetTodosUseCase(Get.find<TodosRepository>()));
     Get.lazyPut(
-      () => TodosController(Get.find<GetTodosUseCase>()),
+      () => TodosController(
+        Get.find<GetTodosUseCase>(),
+        Get.find<GetTodoUsecase>()
+        
+        ),
     );
   }
 }
