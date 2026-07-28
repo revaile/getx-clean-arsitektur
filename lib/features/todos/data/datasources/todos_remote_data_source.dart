@@ -10,7 +10,7 @@ abstract class TodosRemoteDataSource {
   // abstrak buat get by id
   Future<TodoModel> getTodo(int id);
   //abstrak buat create
-   Future<TodoModel> createTodo(TodoRequest request);
+   Future<TodoModel> createTodo(int userId, TodoRequest request);
 
 }
 
@@ -44,9 +44,9 @@ class TodosRemoteDataSourceImpl implements TodosRemoteDataSource {
 
   // untuk create
     @override
-  Future<TodoModel> createTodo(TodoRequest request) async {
+  Future<TodoModel>createTodo(int userId, TodoRequest request) async {
     final response = await _apiClient.post(
-      ApiConstants.todos,
+    '${ApiConstants.users}/$userId${ApiConstants.todos}',
       body: request.toJson(),
     );
 
