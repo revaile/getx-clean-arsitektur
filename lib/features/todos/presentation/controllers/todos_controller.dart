@@ -129,4 +129,13 @@ class TodosController extends GetxController {
   void _showError(String message) {
     Get.snackbar('Gagal', message, snackPosition: SnackPosition.BOTTOM);
   }
+
+  //kepentingan create todo
+  @override
+  void onClose() {
+  userIdController.dispose();
+  titleController.dispose();
+  dueOnController.dispose();
+  super.onClose();
+}
 }
