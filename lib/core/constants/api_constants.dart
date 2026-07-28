@@ -6,7 +6,7 @@ class ApiConstants {
   static const posts = '/posts';
   static const todos = '/todos';
 
-  static const accessToken = String.fromEnvironment('11b662b2162ef20139b9ae4e3a8350e7c35baea7fa60975a89faf90e702ca7ab');
+  static const accessToken = String.fromEnvironment('GOREST_TOKEN');
 
   static Map<String, String> get defaultHeaders {
     final headers = <String, String>{

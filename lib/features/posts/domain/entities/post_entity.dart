@@ -1,5 +1,5 @@
 class PostEntity {
-    const PostEntity({
+  const PostEntity({
     required this.id,
     required this.userId,
     required this.title,

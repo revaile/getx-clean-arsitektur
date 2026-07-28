@@ -1,8 +1,8 @@
-import 'package:getx_clean_arsitektur/core/errors/exceptions.dart';
-import 'package:getx_clean_arsitektur/core/utils/app_result.dart';
-import 'package:getx_clean_arsitektur/features/posts/data/datasources/posts_remote_data_source.dart';
-import 'package:getx_clean_arsitektur/features/posts/domain/entities/post_entity.dart';
-import 'package:getx_clean_arsitektur/features/posts/domain/repositories/posts_repository.dart';
+import '../../../../core/errors/exceptions.dart';
+import '../../../../core/utils/app_result.dart';
+import '../../domain/entities/post_entity.dart';
+import '../../domain/repositories/posts_repository.dart';
+import '../datasources/posts_remote_data_source.dart';
 
 class PostsRepositoryImpl implements PostsRepository {
   const PostsRepositoryImpl(this._remoteDataSource);
@@ -20,4 +20,4 @@ class PostsRepositoryImpl implements PostsRepository {
       return AppFailure('Terjadi kesalahan: $error');
     }
   }
-  }
+}

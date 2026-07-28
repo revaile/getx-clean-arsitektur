@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
+import '../../../../core/routes/app_routes.dart';
 import '../../domain/entities/user_entity.dart';
 import '../controllers/users_controller.dart';
 import '../widgets/user_card.dart';
@@ -19,6 +20,11 @@ class UsersPage extends GetView<UsersController> {
             tooltip: 'Refresh',
             onPressed: controller.getUsers,
             icon: const Icon(Icons.refresh),
+          ),
+          IconButton(
+            tooltip: 'Posts',
+            onPressed: () => Get.toNamed(AppRoutes.posts),
+            icon: const Icon(Icons.article_outlined),
           ),
         ],
       ),

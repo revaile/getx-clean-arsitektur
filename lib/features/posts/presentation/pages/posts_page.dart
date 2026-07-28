@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:getx_clean_arsitektur/features/posts/presentation/controllers/posts_controllers.dart';
 
-
+import '../controllers/posts_controller.dart';
 class PostsPage extends GetView<PostsController> {
   const PostsPage({super.key});
 

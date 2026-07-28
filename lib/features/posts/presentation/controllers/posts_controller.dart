@@ -1,28 +1,26 @@
-import 'package:get/get_rx/src/rx_types/rx_types.dart';
-import 'package:get/get_state_manager/src/simple/get_controllers.dart';
-import 'package:getx_clean_arsitektur/features/posts/domain/entities/post_entity.dart';
-import 'package:getx_clean_arsitektur/features/posts/domain/usecase/get_posts_usecase.dart';
+import 'package:get/get.dart';
+
+import '../../domain/entities/post_entity.dart';
+import '../../domain/usecases/get_posts_usecase.dart';
 
 class PostsController extends GetxController {
   PostsController(
-    //untuk list post
     this._getPostsUseCase,
-
   );
+
   final GetPostsUseCase _getPostsUseCase;
 
   final posts = <PostEntity>[].obs;
   final errorMessage = ''.obs;
   final isLoading = false.obs;
 
-    @override
+  @override
   void onInit() {
     super.onInit();
     getPosts();
   }
 
-  // ========= LOGIKA UNTUK LIST POST =========
-    Future<void> getPosts() async {
+  Future<void> getPosts() async {
     isLoading.value = true;
     errorMessage.value = '';
 
@@ -35,5 +33,4 @@ class PostsController extends GetxController {
 
     isLoading.value = false;
   }
-
 }
