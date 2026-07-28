@@ -14,7 +14,7 @@ class TodosController extends GetxController {
 
   final GetTodosUseCase _getTodosUseCase;
   // get by id
-  final GetTodoUsecase _getTodoUseCase;
+  final GetTodoUseCase _getTodoUseCase;
 
   final todos = <TodoEntity>[].obs;
   final selectedTodo = Rxn<TodoEntity>();

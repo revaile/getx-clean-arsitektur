@@ -18,10 +18,11 @@ class TodosBinding extends Bindings {
       () => TodosRepositoryImpl(Get.find<TodosRemoteDataSource>()),
     );
     Get.lazyPut(() => GetTodosUseCase(Get.find<TodosRepository>()));
+    Get.lazyPut(() => GetTodoUseCase(Get.find<TodosRepository>()));
     Get.lazyPut(
       () => TodosController(
         Get.find<GetTodosUseCase>(),
-        Get.find<GetTodoUsecase>()
+        Get.find<GetTodoUseCase>()
         
         ),
     );

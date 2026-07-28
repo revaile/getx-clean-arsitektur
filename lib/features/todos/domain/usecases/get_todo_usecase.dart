@@ -3,8 +3,8 @@ import 'package:getx_clean_arsitektur/features/todos/domain/repositories/todos_r
 
 import '../../../../core/utils/app_result.dart';
 
-class GetTodoUsecase {
-  const GetTodoUsecase(this._repository);
+class GetTodoUseCase {
+  const GetTodoUseCase(this._repository);
 
   final TodosRepository _repository;
 
