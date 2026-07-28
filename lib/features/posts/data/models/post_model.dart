@@ -1,5 +1,5 @@
 
-import 'package:getx_clean_arsitektur/features/todos/domain/entities/post_entity.dart';
+import 'package:getx_clean_arsitektur/features/posts/domain/entities/post_entity.dart';
 
 class PostModel extends PostEntity {
   const PostModel({
