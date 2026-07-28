@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import 'package:getx_clean_arsitektur/features/todos/presentation/pages/todos_detail_pages.dart';
 
 import '../controllers/todos_controller.dart';
+import '../widgets/todo_form_sheet.dart';
 
 class TodosPage extends GetView<TodosController> {
   const TodosPage({super.key});
@@ -81,6 +82,21 @@ class TodosPage extends GetView<TodosController> {
             ),
           );
         }),
+      ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () {
+          controller.prepareCreateForm();
+
+          showModalBottomSheet<void>(
+            context: context,
+            isScrollControlled: true,
+            useSafeArea: true,
+            showDragHandle: true,
+            builder: (_) => const TodoFormSheet(),
+          );
+        },
+        icon: const Icon(Icons.add),
+        label: const Text('Todo'),
       ),
     );
   }
