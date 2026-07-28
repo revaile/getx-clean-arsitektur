@@ -1,3 +1,5 @@
+import 'package:getx_clean_arsitektur/features/todos/domain/entities/todo_request.dart';
+
 import '../../../../core/errors/exceptions.dart';
 import '../../../../core/utils/app_result.dart';
 import '../../domain/entities/todo_entity.dart';
@@ -34,4 +36,19 @@ class TodosRepositoryImpl implements TodosRepository {
       return AppFailure('Terjadi kesalahan: $error');
     }
   }
+
+  // buat create todo
+  @override
+  Future<AppResult<TodoEntity>>createTodo(int userId, TodoRequest request) async {
+    try {
+      final todo = await _remoteDataSource.createTodo(userId, request);
+      return AppSuccess(todo);
+    } on ServerException catch (error) {
+      return AppFailure(error.message);
+    } catch (error) {
+      return AppFailure('Terjadi kesalahan: $error');
+    }
+  }
+
+
 }
