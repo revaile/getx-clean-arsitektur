@@ -65,7 +65,7 @@ class UsersController extends GetxController {
     final result = await _getUserUseCase(id);
 
     result.fold(
-      onFailure: _showError,
+      onFailure: (message) => errorMessage.value = message,
       onSuccess: (data) => selectedUser.value = data,
     );
 
