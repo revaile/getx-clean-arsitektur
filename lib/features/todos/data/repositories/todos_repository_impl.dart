@@ -19,5 +19,19 @@ class TodosRepositoryImpl implements TodosRepository {
     } catch (error) {
       return AppFailure('Terjadi kesalahan: $error');
     }
+    
+  }
+
+  // buat get by id
+    @override
+  Future<AppResult<TodoEntity>> getTodo(int id) async {
+    try {
+      final todo = await _remoteDataSource.getTodo(id);
+      return AppSuccess(todo);
+    } on ServerException catch (error) {
+      return AppFailure(error.message);
+    } catch (error) {
+      return AppFailure('Terjadi kesalahan: $error');
+    }
   }
 }
