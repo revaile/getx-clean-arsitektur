@@ -754,6 +754,603 @@ body
 Jadi jangan copy field `name`, `email`, `gender`, `status` dari users.
 
 
+## Contoh get list id
+
+```text
+GET https://gorest.co.in/public/v2/todos/107349
+{
+  "id": 107349,
+  "user_id": 8558937,
+  "title": "Cubo alter considero esse neque aegrotatio vel auditor.",
+  "due_on": "2026-08-15T00:00:00.000+05:30",
+  "status": "pending"
+}
+```
+
+## Boilerplate GET Todo Detail
+
+Endpoint detail todos:
+
+```text
+GET https://gorest.co.in/public/v2/todos/{id}
+```
+
+Contoh:
+
+```text
+GET https://gorest.co.in/public/v2/todos/107349
+```
+
+Alur clean architecture-nya:
+
+```text
+TodosPage
+-> klik salah satu todo
+-> TodosDetailPage(todoId)
+-> TodosController.getTodo(id)
+-> GetTodoUseCase(id)
+-> TodosRepository.getTodo(id)
+-> TodosRepositoryImpl.getTodo(id)
+-> TodosRemoteDataSource.getTodo(id)
+-> ApiClient.get('/todos/{id}')
+-> GoREST API
+-> TodoModel.fromJson()
+-> selectedTodo
+-> UI detail tampil
+```
+
+## Step 1: Tambahkan Method di Remote Data Source
+
+Buka file:
+
+```text
+lib/features/todos/data/datasources/todos_remote_data_source.dart
+```
+
+Tambahkan method di abstract class:
+
+```dart
+abstract class TodosRemoteDataSource {
+  Future<List<TodoModel>> getTodos();
+  Future<TodoModel> getTodo(int id);
+}
+```
+
+Tambahkan implementasinya:
+
+```dart
+class TodosRemoteDataSourceImpl implements TodosRemoteDataSource {
+  const TodosRemoteDataSourceImpl(this._apiClient);
+
+  final ApiClient _apiClient;
+
+  @override
+  Future<List<TodoModel>> getTodos() async {
+    final response = await _apiClient.get(ApiConstants.todos);
+
+    if (response is! List) {
+      return const [];
+    }
+
+    return response
+        .whereType<Map<String, dynamic>>()
+        .map(TodoModel.fromJson)
+        .toList();
+  }
+
+  @override
+  Future<TodoModel> getTodo(int id) async {
+    final response = await _apiClient.get('${ApiConstants.todos}/$id');
+    return TodoModel.fromJson(response as Map<String, dynamic>);
+  }
+}
+```
+
+Penjelasan:
+
+```text
+ApiConstants.todos = /todos
+id = id todo yang diklik
+```
+
+Jadi request finalnya:
+
+```text
+GET https://gorest.co.in/public/v2/todos/107349
+```
+
+## Step 2: Tambahkan Method di Repository Contract
+
+Buka file:
+
+```text
+lib/features/todos/domain/repositories/todos_repository.dart
+```
+
+Isi:
+
+```dart
+import '../../../../core/utils/app_result.dart';
+import '../entities/todo_entity.dart';
+
+abstract class TodosRepository {
+  Future<AppResult<List<TodoEntity>>> getTodos();
+  Future<AppResult<TodoEntity>> getTodo(int id);
+}
+```
+
+Penjelasan:
+
+```text
+getTodos() = ambil list todos
+getTodo(id) = ambil detail todo berdasarkan id
+```
+
+## Step 3: Tambahkan Implementasi Repository
+
+Buka file:
+
+```text
+lib/features/todos/data/repositories/todos_repository_impl.dart
+```
+
+Isi lengkap:
+
+```dart
+import '../../../../core/errors/exceptions.dart';
+import '../../../../core/utils/app_result.dart';
+import '../../domain/entities/todo_entity.dart';
+import '../../domain/repositories/todos_repository.dart';
+import '../datasources/todos_remote_data_source.dart';
+
+class TodosRepositoryImpl implements TodosRepository {
+  const TodosRepositoryImpl(this._remoteDataSource);
+
+  final TodosRemoteDataSource _remoteDataSource;
+
+  @override
+  Future<AppResult<List<TodoEntity>>> getTodos() async {
+    try {
+      final todos = await _remoteDataSource.getTodos();
+      return AppSuccess(todos);
+    } on ServerException catch (error) {
+      return AppFailure(error.message);
+    } catch (error) {
+      return AppFailure('Terjadi kesalahan: $error');
+    }
+  }
+
+  @override
+  Future<AppResult<TodoEntity>> getTodo(int id) async {
+    try {
+      final todo = await _remoteDataSource.getTodo(id);
+      return AppSuccess(todo);
+    } on ServerException catch (error) {
+      return AppFailure(error.message);
+    } catch (error) {
+      return AppFailure('Terjadi kesalahan: $error');
+    }
+  }
+}
+```
+
+Penjelasan:
+
+```text
+RepositoryImpl memanggil remote data source.
+Kalau berhasil -> AppSuccess(todo)
+Kalau gagal -> AppFailure(message)
+```
+
+## Step 4: Buat Use Case Detail
+
+Buat file:
+
+```text
+lib/features/todos/domain/usecases/get_todo_usecase.dart
+```
+
+Isi:
+
+```dart
+import '../../../../core/utils/app_result.dart';
+import '../entities/todo_entity.dart';
+import '../repositories/todos_repository.dart';
+
+class GetTodoUseCase {
+  const GetTodoUseCase(this._repository);
+
+  final TodosRepository _repository;
+
+  Future<AppResult<TodoEntity>> call(int id) {
+    return _repository.getTodo(id);
+  }
+}
+```
+
+Penjelasan:
+
+```text
+Controller tidak langsung panggil repository.
+Controller cukup panggil GetTodoUseCase.
+```
+
+## Step 5: Update Controller
+
+Buka file:
+
+```text
+lib/features/todos/presentation/controllers/todos_controller.dart
+```
+
+Isi lengkap:
+
+```dart
+import 'package:get/get.dart';
+
+import '../../domain/entities/todo_entity.dart';
+import '../../domain/usecases/get_todo_usecase.dart';
+import '../../domain/usecases/get_todos_usecase.dart';
+
+class TodosController extends GetxController {
+  TodosController(
+    this._getTodosUseCase,
+    this._getTodoUseCase,
+  );
+
+  final GetTodosUseCase _getTodosUseCase;
+  final GetTodoUseCase _getTodoUseCase;
+
+  final todos = <TodoEntity>[].obs;
+  final selectedTodo = Rxn<TodoEntity>();
+
+  final errorMessage = ''.obs;
+  final detailErrorMessage = ''.obs;
+
+  final isLoading = false.obs;
+  final isDetailLoading = false.obs;
+
+  @override
+  void onInit() {
+    super.onInit();
+    getTodos();
+  }
+
+  Future<void> getTodos() async {
+    isLoading.value = true;
+    errorMessage.value = '';
+
+    final result = await _getTodosUseCase();
+
+    result.fold(
+      onFailure: (message) => errorMessage.value = message,
+      onSuccess: (data) => todos.assignAll(data),
+    );
+
+    isLoading.value = false;
+  }
+
+  Future<void> getTodo(int id) async {
+    isDetailLoading.value = true;
+    detailErrorMessage.value = '';
+    selectedTodo.value = null;
+
+    final result = await _getTodoUseCase(id);
+
+    result.fold(
+      onFailure: (message) => detailErrorMessage.value = message,
+      onSuccess: (data) => selectedTodo.value = data,
+    );
+
+    isDetailLoading.value = false;
+  }
+}
+```
+
+State detail:
+
+```text
+selectedTodo       = data detail todo
+isDetailLoading    = loading khusus detail
+detailErrorMessage = error khusus detail
+```
+
+## Step 6: Update Binding
+
+Buka file:
+
+```text
+lib/features/todos/presentation/bindings/todos_bindings.dart
+```
+
+Isi lengkap:
+
+```dart
+import 'package:get/get.dart';
+
+import '../../../../core/network/api_client.dart';
+import '../../data/datasources/todos_remote_data_source.dart';
+import '../../data/repositories/todos_repository_impl.dart';
+import '../../domain/repositories/todos_repository.dart';
+import '../../domain/usecases/get_todo_usecase.dart';
+import '../../domain/usecases/get_todos_usecase.dart';
+import '../controllers/todos_controller.dart';
+
+class TodosBinding extends Bindings {
+  @override
+  void dependencies() {
+    Get.lazyPut<TodosRemoteDataSource>(
+      () => TodosRemoteDataSourceImpl(Get.find<ApiClient>()),
+    );
+
+    Get.lazyPut<TodosRepository>(
+      () => TodosRepositoryImpl(Get.find<TodosRemoteDataSource>()),
+    );
+
+    Get.lazyPut(() => GetTodoUseCase(Get.find<TodosRepository>()));
+    Get.lazyPut(() => GetTodosUseCase(Get.find<TodosRepository>()));
+
+    Get.lazyPut(
+      () => TodosController(
+        Get.find<GetTodosUseCase>(),
+        Get.find<GetTodoUseCase>(),
+      ),
+    );
+  }
+}
+```
+
+Penjelasan:
+
+```text
+Binding harus daftar GetTodoUseCase.
+Kalau tidak, Get.find<GetTodoUseCase>() akan error.
+```
+
+## Step 7: Buat Todos Detail Page
+
+Buat file:
+
+```text
+lib/features/todos/presentation/pages/todos_detail_page.dart
+```
+
+Isi:
+
+```dart
+import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+
+import '../controllers/todos_controller.dart';
+
+class TodosDetailPage extends StatefulWidget {
+  const TodosDetailPage({super.key, required this.todoId});
+
+  final int todoId;
+
+  @override
+  State<TodosDetailPage> createState() => _TodosDetailPageState();
+}
+
+class _TodosDetailPageState extends State<TodosDetailPage> {
+  final TodosController controller = Get.find<TodosController>();
+
+  @override
+  void initState() {
+    super.initState();
+    controller.getTodo(widget.todoId);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Todo #${widget.todoId}'),
+      ),
+      body: SafeArea(
+        child: Obx(() {
+          if (controller.isDetailLoading.value) {
+            return const Center(child: CircularProgressIndicator());
+          }
+
+          if (controller.detailErrorMessage.isNotEmpty) {
+            return Center(
+              child: Padding(
+                padding: const EdgeInsets.all(24),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      controller.detailErrorMessage.value,
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 16),
+                    FilledButton.icon(
+                      onPressed: () => controller.getTodo(widget.todoId),
+                      icon: const Icon(Icons.refresh),
+                      label: const Text('Coba Lagi'),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          }
+
+          final todo = controller.selectedTodo.value;
+
+          if (todo == null) {
+            return const Center(child: Text('Todo tidak ditemukan'));
+          }
+
+          return ListView(
+            padding: const EdgeInsets.all(16),
+            children: [
+              Card(
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        todo.title,
+                        style: Theme.of(context).textTheme.titleLarge
+                            ?.copyWith(fontWeight: FontWeight.w800),
+                      ),
+                      const SizedBox(height: 16),
+                      _DetailRow(label: 'ID', value: todo.id.toString()),
+                      _DetailRow(
+                        label: 'User ID',
+                        value: todo.userId.toString(),
+                      ),
+                      _DetailRow(label: 'Due On', value: todo.dueOn),
+                      _DetailRow(label: 'Status', value: todo.status),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          );
+        }),
+      ),
+    );
+  }
+}
+
+class _DetailRow extends StatelessWidget {
+  const _DetailRow({
+    required this.label,
+    required this.value,
+  });
+
+  final String label;
+  final String value;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 10),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            width: 80,
+            child: Text(
+              label,
+              style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                color: const Color(0xFF64748B),
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ),
+          Expanded(
+            child: Text(
+              value,
+              style: Theme.of(context).textTheme.bodyLarge,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+```
+
+Kenapa pakai `StatefulWidget`?
+
+```text
+Request detail dipanggil sekali di initState().
+Jangan panggil API di build(), karena build bisa jalan berkali-kali.
+```
+
+## Step 8: Update TodosPage Supaya Card Bisa Diklik
+
+Buka file:
+
+```text
+lib/features/todos/presentation/pages/todos_page.dart
+```
+
+Tambahkan import:
+
+```dart
+import 'todos_detail_page.dart';
+```
+
+Ubah card list menjadi clickable:
+
+```dart
+return InkWell(
+  onTap: () => Get.to(
+    () => TodosDetailPage(todoId: todo.id),
+  ),
+  borderRadius: BorderRadius.circular(8),
+  child: Card(
+    margin: const EdgeInsets.only(bottom: 12),
+    child: Padding(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            todo.title,
+            style: Theme.of(context).textTheme.titleMedium
+                ?.copyWith(fontWeight: FontWeight.w700),
+          ),
+          const SizedBox(height: 12),
+          _TodoRow(label: 'ID', value: todo.id.toString()),
+          _TodoRow(
+            label: 'User ID',
+            value: todo.userId.toString(),
+          ),
+          _TodoRow(label: 'Due On', value: todo.dueOn),
+          _TodoRow(label: 'Status', value: todo.status),
+        ],
+      ),
+    ),
+  ),
+);
+```
+
+Penjelasan:
+
+```dart
+TodosDetailPage(todoId: todo.id)
+```
+
+Artinya id dari todo yang diklik dikirim ke halaman detail.
+
+## Alur Lengkap GET Todo Detail
+
+```text
+User klik salah satu Todo
+-> Get.to(TodosDetailPage(todoId: todo.id))
+-> TodosDetailPage.initState()
+-> controller.getTodo(id)
+-> GetTodoUseCase(id)
+-> TodosRepository.getTodo(id)
+-> TodosRepositoryImpl.getTodo(id)
+-> TodosRemoteDataSource.getTodo(id)
+-> ApiClient.get('/todos/{id}')
+-> GET https://gorest.co.in/public/v2/todos/{id}
+-> TodoModel.fromJson()
+-> selectedTodo.value = data
+-> Obx rebuild UI
+-> detail todo tampil
+```
+
+## Urutan File GET Todo Detail
+
+```text
+1. todos_remote_data_source.dart
+2. todos_repository.dart
+3. todos_repository_impl.dart
+4. get_todo_usecase.dart
+5. todos_controller.dart
+6. todos_bindings.dart
+7. todos_detail_page.dart
+8. todos_page.dart
+```
+
 
 ## Command
 
