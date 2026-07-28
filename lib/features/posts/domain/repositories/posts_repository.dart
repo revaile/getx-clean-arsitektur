@@ -2,8 +2,8 @@ import 'package:getx_clean_arsitektur/features/posts/domain/entities/post_entity
 
 import '../../../../core/utils/app_result.dart';
 
-abstract class PostRemoteDataSource {
+abstract class PostRepository {
   //ambil buat list post
-  Future<AppResult<List<PostEntity>>> getUsers();
+  Future<AppResult<List<PostEntity>>> getPosts();
 
 }
