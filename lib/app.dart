@@ -14,7 +14,7 @@ class App extends StatelessWidget {
       title: 'GetX Clean Architecture',
       debugShowCheckedModeBanner: false,
       initialBinding: InitialBinding(),
-      initialRoute: AppRoutes.users,
+      initialRoute: AppRoutes.main,
       getPages: AppPages.pages,
       theme: ThemeData(
         useMaterial3: true,

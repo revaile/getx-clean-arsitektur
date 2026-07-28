@@ -10,13 +10,18 @@ import '../controllers/posts_controller.dart';
 class PostsBinding extends Bindings {
   @override
   void dependencies() {
+    //darftarkan remote data source
     Get.lazyPut<PostsRemoteDataSource>(
       () => PostsRemoteDataSourceImpl(Get.find<ApiClient>()),
     );
+    //darftarkan repository
     Get.lazyPut<PostsRepository>(
       () => PostsRepositoryImpl(Get.find<PostsRemoteDataSource>()),
-    );
-    Get.lazyPut(() => GetPostsUseCase(Get.find<PostsRepository>()));
+    );  
+    //darftarkan usecase
+    Get.lazyPut(
+      () => GetPostsUseCase(Get.find<PostsRepository>()));
+      //darftarkan controller
     Get.lazyPut(
       () => PostsController(Get.find<GetPostsUseCase>()),
     );
