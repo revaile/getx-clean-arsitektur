@@ -1,4 +1,7 @@
+import 'package:flutter/widgets.dart';
 import 'package:get/get.dart';
+import 'package:getx_clean_arsitektur/features/todos/domain/entities/todo_request.dart';
+import 'package:getx_clean_arsitektur/features/todos/domain/usecases/create_todo_usecase.dart';
 import 'package:getx_clean_arsitektur/features/todos/domain/usecases/get_todo_usecase.dart';
 
 import '../../domain/entities/todo_entity.dart';
@@ -10,11 +13,15 @@ class TodosController extends GetxController {
     this._getTodosUseCase,
     // get by id
     this._getTodoUseCase,
+    // create todo
+    this._createTodoUseCase,
   );
 
   final GetTodosUseCase _getTodosUseCase;
   // get by id
   final GetTodoUseCase _getTodoUseCase;
+  // create todo
+  final CreateTodoUseCase _createTodoUseCase;
 
   final todos = <TodoEntity>[].obs;
   final selectedTodo = Rxn<TodoEntity>();
@@ -22,11 +29,16 @@ class TodosController extends GetxController {
   final isLoading = false.obs;
   final isDetailLoading = false.obs;
 
-
   final errorMessage = ''.obs;
   final detailErrorMessage = ''.obs;
 
-
+  //kebutuhan create
+  final formKey = GlobalKey<FormState>();
+  final userIdController = TextEditingController();
+  final titleController = TextEditingController();
+  final dueOnController = TextEditingController();
+  final selectedStatus = 'pending'.obs;
+  final isSubmitting = false.obs;
 
   @override
   void onInit() {
@@ -49,7 +61,7 @@ class TodosController extends GetxController {
   }
 
   // buat get by id
-    Future<void> getTodo(int id) async {
+  Future<void> getTodo(int id) async {
     isDetailLoading.value = true;
     selectedTodo.value = null;
 
@@ -63,5 +75,58 @@ class TodosController extends GetxController {
     isDetailLoading.value = false;
   }
 
+  //buat crete todo
+  //pengisi otomatis
+  void prepareCreateForm() {
+    userIdController.text = '8560408';
+    titleController.text = 'amarnyoooooo';
+    dueOnController.text = '2026-08-15T00:00:00.000+05:30';
+    selectedStatus.value = 'pending';
+  }
 
+  //Method untuk create todo
+  Future<bool> createTodo() async {
+    if (formKey.currentState?.validate() != true) {
+      return false;
+    }
+
+  //beda disini
+    final userId = int.tryParse(userIdController.text.trim());
+    if (userId == null) {
+      _showError('User ID tidak valid');
+      return false;
+    }
+
+    isSubmitting.value = true;
+
+    final request = TodoRequest(
+      title: titleController.text.trim(),
+      dueOn: dueOnController.text.trim(),
+      status: selectedStatus.value,
+    );
+    final result = await _createTodoUseCase(userId, request);
+
+    final isSuccess = result.fold(
+      onFailure: (message) {
+        _showError(message);
+        return false;
+      },
+      onSuccess: (todo) {
+        todos.insert(0, todo);
+        _showSuccess('Todo berhasil dibuat');
+        return true;
+      },
+    );
+
+    isSubmitting.value = false;
+    return isSuccess;
+  }
+
+  void _showSuccess(String message) {
+    Get.snackbar('Berhasil', message, snackPosition: SnackPosition.BOTTOM);
+  }
+
+  void _showError(String message) {
+    Get.snackbar('Gagal', message, snackPosition: SnackPosition.BOTTOM);
+  }
 }
